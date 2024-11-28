@@ -5,6 +5,16 @@
 <h2 class="page-heading title">{{lang 'account.orders.details.heading' number=order.id}}</h2>
 {{> components/account/navigation account_page='orders'}}
 
+<style>
+    iframe {
+        border: none;
+        height: 600px;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
 <div class="account">
     <div class="account-body">
         {{#each order.status_messages}}
@@ -21,6 +31,10 @@
                     {{/if}}
                 {{/each}}
             </dl>
+
+            {{#if order.payment_method '===' 'Monero'}}
+                <iframe id="frame"></iframe>
+            {{/if}}
         </div>
 
         <aside class="account-sidebar">
@@ -43,7 +57,9 @@
                         </dd>
                     {{/if}}
                     {{#if order.order_instructions}}
-                        <dt class="order-payments-description">{{lang 'account.orders.details.how_to_pay'}}</dt>
+                        {{#if order.payment_method '!==' 'Monero'}}
+                            <dt class="order-payments-description">{{lang 'account.orders.details.how_to_pay'}}</dt>
+                        {{/if}}
                         <dd class="order-payments-value order-payments-value--long">{{nl2br order.order_instructions}}</dd>
                     {{/if}}
                 </dl>
@@ -181,5 +197,19 @@
 
     </div>
 </div>
+<script type="module">
+    const apiUrlResponse = await fetch(window.location.origin + "/content/moneroapiurl.json", {
+        method: "GET",
+        mode: "no-cors",
+        headers: {
+            "Accept": "application/json",
+        }
+    });
+    const moneroApiUrlResponse = await apiUrlResponse.json();
+
+    document.getElementById("frame").setAttribute("src", `${moneroApiUrlResponse.url.split("/api")[0]}/OrderPayment?email={{customer.email}}&orderId={{order.id}}&store={{settings.store_name}}&isEmbedded=true`);
+    // document.getElementById("frame").setAttribute("src", `https://localhost:5101/OrderPayment?email={{customer.email}}&orderId={{order.id}}&store={{settings.store_name}}&isEmbedded=true`);
+</script>
+
 {{/partial}}
 {{> layout/base}}
